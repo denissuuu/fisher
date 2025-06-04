@@ -114,6 +114,12 @@ body {
   }
 }
 
+/* Bob animation */
+@keyframes bobbing {
+  0%, 100% { transform: translateX(-50%) translateY(-3px); }
+  50% { transform: translateX(-50%) translateY(3px); }
+}
+
 .container {
   text-align: center;
   padding: 2.5rem;
@@ -268,7 +274,6 @@ h2 {
   background-color: rgba(10, 25, 47, 0.7);
   min-height: 400px;
   border-radius: 10px;
-  margin-bottom: 1.5rem;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(76, 194, 240, 0.3);
@@ -278,6 +283,7 @@ h2 {
   display: flex;
   justify-content: center;
   gap: 1rem;
+  margin-top: 15px;
 }
 
 .secondary-button {
@@ -300,4 +306,8 @@ h2 {
 
 .secondary-button:active {
   transform: translateY(1px);
+}
+
+.hidden {
+  display: none;
 }
