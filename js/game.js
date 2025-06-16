@@ -1,6 +1,3 @@
-// Game mechanics and logic
-
-// Fish types with rarities and values (in dollars)
 const FISH_TYPES = {
     common: [
         { name: "Sardine", icon: "🐟", value: 1, chance: 40 },
@@ -24,7 +21,6 @@ const FISH_TYPES = {
     ]
 };
 
-// Fishing rods available in the shop
 const FISHING_RODS = [
     { 
         id: "basic-rod", 
@@ -53,10 +49,31 @@ const FISHING_RODS = [
         price: 500, 
         catchRateBonus: 20,
         owned: false
+    },
+    { 
+        id: "master-rod", 
+        name: "Master Rod", 
+        price: 1000, 
+        catchRateBonus: 30,
+        owned: false
+    },
+    { 
+        id: "legendary-rod", 
+        name: "Legendary Rod", 
+        price: 2500, 
+        catchRateBonus: 50,
+        owned: false
+    },
+    { 
+        id: "mythic-rod", 
+        name: "Mythic Rod", 
+        price: 5000, 
+        catchRateBonus: 75,
+        owned: false
     }
 ];
 
-// Rarity colors for fish display
+
 const RARITY_CLASS = {
     common: "common",
     uncommon: "uncommon",
@@ -65,51 +82,103 @@ const RARITY_CLASS = {
     legendary: "legendary"
 };
 
-// Game state
+
 const gameState = {
     inventory: [],
     money: 0,
-    equippedRod: FISHING_RODS[0], // Basic rod
+    equippedRod: FISHING_RODS[0], 
     isFishing: false
 };
 
-// Initialize game when page loads
+// Fonction pour sauvegarder l'état du jeu
+function saveGame() {
+    const saveData = {
+        money: gameState.money,
+        inventory: gameState.inventory,
+        equippedRodId: gameState.equippedRod.id,
+        ownedRods: FISHING_RODS.map(rod => ({
+            id: rod.id,
+            owned: rod.owned
+        }))
+    };
+    localStorage.setItem('fisherGameSave', JSON.stringify(saveData));
+}
+
+// Fonction pour charger l'état du jeu
+function loadGame() {
+    const savedData = localStorage.getItem('fisherGameSave');
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        
+        // Restaurer l'argent
+        gameState.money = data.money;
+        
+        // Restaurer l'inventaire
+        gameState.inventory = data.inventory;
+        
+        // Restaurer les cannes possédées
+        data.ownedRods.forEach(savedRod => {
+            const rodIndex = FISHING_RODS.findIndex(r => r.id === savedRod.id);
+            if (rodIndex !== -1) {
+                FISHING_RODS[rodIndex].owned = savedRod.owned;
+            }
+        });
+        
+        // Restaurer la canne équipée
+        const equippedRod = FISHING_RODS.find(r => r.id === data.equippedRodId);
+        if (equippedRod) {
+            gameState.equippedRod = equippedRod;
+        }
+        
+        // Mettre à jour l'interface
+        updateStats();
+        updateInventoryDisplay();
+        initializeShop();
+        displayMessage("Game loaded!");
+    }
+}
+
+// Sauvegarder automatiquement après chaque action importante
+function autoSave() {
+    saveGame();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     if (document.querySelector('.game-page')) {
         initGame();
+        loadGame(); // Charger la partie au démarrage
     }
 });
 
-// Initialize the game
+
 function initGame() {
-    // Get DOM elements
     const fishButton = document.getElementById('fish-button');
+    const sellButton = document.getElementById('sell-button');
     const shopBtn = document.getElementById('shop-button');
     const closeShopBtn = document.getElementById('close-shop');
     const backBtn = document.getElementById('back-to-home');
     
-    // Add event listeners
     fishButton.addEventListener('click', startFishing);
+    
+    // Make sure this line is correctly binding the event handler
+    sellButton.addEventListener('click', function() {
+        sellAllFish();  // Explicitly call the function
+    });
+    
     shopBtn.addEventListener('click', openShop);
     closeShopBtn.addEventListener('click', closeShop);
     backBtn.addEventListener('click', () => { window.location.href = 'index.html'; });
     
-    // Initialize shop
     initializeShop();
-    
-    // Update the UI
     updateStats();
-    
-    // Display welcome message
     displayMessage("Ready to start fishing!");
 }
 
-// Initialize the shop with items
+
 function initializeShop() {
     const rodShop = document.getElementById('rod-shop');
     rodShop.innerHTML = '';
     
-    // Add fishing rods to shop
     FISHING_RODS.forEach(rod => {
         const rodElement = document.createElement('div');
         rodElement.className = `shop-item ${rod.owned ? 'owned' : ''}`;
@@ -122,15 +191,20 @@ function initializeShop() {
                           `<button class="buy-button equip-button">Equip</button>`}
         `;
         
-        // Add event listener
         const buyButton = rodElement.querySelector('.buy-button');
         if (buyButton) {
             if (rod.owned) {
-                // Equip rod if owned
-                buyButton.addEventListener('click', () => equipRod(rod));
+                buyButton.addEventListener('click', () => {
+                    equipRod(rod);
+                    displayMessage(`Equipped ${rod.name}!`);
+                });
             } else {
-                // Buy rod if not owned
-                buyButton.addEventListener('click', () => buyRod(rod));
+                buyButton.addEventListener('click', () => {
+                    if (gameState.money >= rod.price) {
+                        buyRod(rod);
+                        displayMessage(`Bought ${rod.name} for $${rod.price}!`);
+                    }
+                });
             }
         }
         
@@ -138,66 +212,60 @@ function initializeShop() {
     });
 }
 
-// Buy a rod from the shop
+
 function buyRod(rod) {
     if (gameState.money < rod.price) return;
     
-    // Deduct money
     gameState.money -= rod.price;
-    
-    // Mark as owned
     rod.owned = true;
     
-    // Update the rod in the array
     const rodIndex = FISHING_RODS.findIndex(r => r.id === rod.id);
     FISHING_RODS[rodIndex] = rod;
     
-    // Equip the new rod
     equipRod(rod);
-    
-    // Update UI
     updateStats();
     initializeShop();
+    autoSave(); // Sauvegarder après l'achat
 }
 
-// Equip a rod
+
 function equipRod(rod) {
     gameState.equippedRod = rod;
     
-    // Update the current rod display
+
     document.getElementById('current-rod').textContent = rod.name;
     
-    // Close shop after equipping
+
     closeShop();
     
-    // Update message
+
     displayMessage(`Equipped ${rod.name}!`);
+    autoSave(); // Sauvegarder après l'équipement
 }
 
-// Open shop modal
+
 function openShop() {
     document.getElementById('shop-modal').classList.remove('hidden');
 }
 
-// Close shop modal
+
 function closeShop() {
     document.getElementById('shop-modal').classList.add('hidden');
 }
 
-// Start fishing
+
 function startFishing() {
     if (gameState.isFishing) return;
     
     const fishButton = document.getElementById('fish-button');
-    
-    // Update game state
+
     gameState.isFishing = true;
     fishButton.disabled = true;
     
-    // Display message
+
     displayMessage("Fishing...");
     
-    // Wait for a fish (random time between 1-3 seconds)
+
     const fishingTime = 1000 + Math.random() * 2000;
     setTimeout(() => {
         catchFish();
@@ -207,6 +275,7 @@ function startFishing() {
 // Catch a fish
 function catchFish() {
     const fishButton = document.getElementById('fish-button');
+    const sellButton = document.getElementById('sell-button');
     
     // Reset game state
     gameState.isFishing = false;
@@ -216,9 +285,8 @@ function catchFish() {
     
     // Add to inventory
     gameState.inventory.push(caughtFish);
-    gameState.money += caughtFish.value;
     
-    // Update stats
+    // Update stats - but money won't change here
     updateStats();
     
     // Display message
@@ -229,6 +297,38 @@ function catchFish() {
     
     // Re-enable button
     fishButton.disabled = false;
+    sellButton.disabled = false;
+    autoSave(); // Sauvegarder après avoir attrapé un poisson
+}
+
+// Sell all fish in the inventory
+function sellAllFish() {
+    console.log("Sell button clicked");  // Debug log
+    
+    if (gameState.inventory.length === 0) {
+        displayMessage("No fish to sell!");
+        return;
+    }
+    
+    let totalValue = 0;
+    gameState.inventory.forEach(fish => {
+        totalValue += fish.value;
+    });
+    
+    // Add money only when selling
+    gameState.money += totalValue;
+    gameState.inventory = [];
+    
+    // Update UI
+    updateStats();
+    updateInventoryDisplay();
+    
+    // Disable sell button after selling
+    document.getElementById('sell-button').disabled = true;
+    
+    // Show message about sale
+    displayMessage(`Sold all fish for $${totalValue}!`);
+    autoSave(); // Sauvegarder après la vente
 }
 
 // Helper function to get a random fish based on chance and equipment bonuses
@@ -300,11 +400,12 @@ function displayMessage(message) {
 function updateInventoryDisplay() {
     const inventoryEl = document.getElementById('inventory');
     
-    // Clear "no fish" message if it exists
-    const emptyMessage = inventoryEl.querySelector('.empty-inventory');
-    if (emptyMessage) {
-        inventoryEl.innerHTML = '';
+    if (gameState.inventory.length === 0) {
+        inventoryEl.innerHTML = '<p class="empty-inventory">No fish caught yet.</p>';
+        return;
     }
+    
+    inventoryEl.innerHTML = '';
     
     // Group fish by type and count
     const fishCounts = {};
@@ -319,23 +420,14 @@ function updateInventoryDisplay() {
         const fish = item.fish;
         const count = item.count;
         
-        // Check if this fish type is already displayed
-        let fishEl = document.querySelector(`.inventory-item[data-fish="${fish.name}-${fish.rarity}"]`);
+        const fishEl = document.createElement('div');
+        fishEl.className = `inventory-item ${RARITY_CLASS[fish.rarity]}`;
+        fishEl.setAttribute('data-fish', `${fish.name}-${fish.rarity}`);
         
-        if (!fishEl) {
-            // Create new element if not already displayed
-            fishEl = document.createElement('div');
-            fishEl.className = `inventory-item ${RARITY_CLASS[fish.rarity]}`;
-            fishEl.setAttribute('data-fish', `${fish.name}-${fish.rarity}`);
-            
-            fishEl.innerHTML = `
-                ${fish.icon} ${fish.name}: <span class="fish-count">${count}x</span> ($${fish.value} each)
-            `;
-            
-            inventoryEl.appendChild(fishEl);
-        } else {
-            // Update the count if already displayed
-            fishEl.querySelector('.fish-count').textContent = `${count}x`;
-        }
+        fishEl.innerHTML = `
+            ${fish.icon} ${fish.name}: <span class="fish-count">${count}x</span> ($${fish.value} each)
+        `;
+        
+        inventoryEl.appendChild(fishEl);
     });
 }

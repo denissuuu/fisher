@@ -1,4 +1,4 @@
-/* Fisher Game Styles - Dark Starry Night Theme */
+/* Fisher Game Styles - River Theme */
 
 :root {
   --primary-color: #4cc2f0;
@@ -7,6 +7,8 @@
   --bg-color-dark: #041429;
   --bg-color-light: #0a2550;
   --text-color: #e6f1ff;
+  --river-color: #1a4b6e;
+  --river-light: #2a6b9e;
   --star-color: rgba(255, 255, 255, 0.9);
 }
 
@@ -26,6 +28,167 @@ body {
   align-items: center;
   position: relative;
   overflow: hidden;
+}
+
+/* River background */
+.river-background {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  background: linear-gradient(to bottom, 
+    #2c3e50 0%,
+    #3498db 30%,
+    #2980b9 60%,
+    #1a4b6e 100%
+  );
+  overflow: hidden;
+}
+
+/* River surface effect */
+.river-surface {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: ripple 8s ease-in-out infinite;
+}
+
+@keyframes ripple {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+/* River bank */
+.river-bank {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background: linear-gradient(to bottom,
+    transparent 0%,
+    rgba(44, 62, 80, 0.8) 100%
+  );
+  clip-path: polygon(
+    0% 100%,
+    10% 80%,
+    20% 90%,
+    30% 75%,
+    40% 85%,
+    50% 70%,
+    60% 80%,
+    70% 65%,
+    80% 75%,
+    90% 60%,
+    100% 70%,
+    100% 100%
+  );
+}
+
+/* River waves */
+.river-wave {
+  position: absolute;
+  width: 200%;
+  height: 100px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.1));
+  animation: wave 8s linear infinite;
+}
+
+.river-wave:nth-child(1) {
+  top: 20%;
+  animation-delay: 0s;
+}
+
+.river-wave:nth-child(2) {
+  top: 40%;
+  animation-delay: -2s;
+}
+
+.river-wave:nth-child(3) {
+  top: 60%;
+  animation-delay: -4s;
+}
+
+@keyframes wave {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+/* River reflections */
+.river-reflection {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, 
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    transparent 100%
+  );
+  animation: reflection 8s linear infinite;
+}
+
+@keyframes reflection {
+  0% {
+    transform: translateX(-100%) translateY(-100%);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%);
+  }
+}
+
+/* Decorative fish */
+.decorative-fish {
+  position: absolute;
+  width: 30px;
+  height: 15px;
+  background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+  border-radius: 50% 50% 0 50%;
+  animation: swim 15s linear infinite;
+  opacity: 0.6;
+}
+
+.decorative-fish:nth-child(1) {
+  top: 30%;
+  animation-delay: 0s;
+}
+
+.decorative-fish:nth-child(2) {
+  top: 50%;
+  animation-delay: -5s;
+}
+
+.decorative-fish:nth-child(3) {
+  top: 70%;
+  animation-delay: -10s;
+}
+
+@keyframes swim {
+  0% {
+    transform: translateX(-100%) rotate(0deg);
+  }
+  50% {
+    transform: translateX(50vw) rotate(5deg);
+  }
+  100% {
+    transform: translateX(100vw) rotate(0deg);
+  }
 }
 
 /* Stars background with more stars */
@@ -120,6 +283,7 @@ body {
   50% { transform: translateX(-50%) translateY(3px); }
 }
 
+/* Container styles */
 .container {
   text-align: center;
   padding: 2.5rem;
