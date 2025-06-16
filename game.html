@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fisher - Game</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/game.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
@@ -72,18 +72,25 @@
                 <h3>Fishing Shop</h3>
                 <button id="close-shop" class="close-button">&times;</button>
             </div>
+            <div class="shop-categories">
+                <button class="category-button active" data-category="rods">
+                    <i class="fas fa-fish"></i> Fishing Rods
+                </button>
+                <button class="category-button" data-category="baits">
+                    <i class="fas fa-worm"></i> Baits
+                </button>
+                <button class="category-button" data-category="upgrades">
+                    <i class="fas fa-star"></i> Upgrades
+                </button>
+            </div>
             <div class="modal-body">
-                <div class="shop-section">
-                    <h4>Fishing Rods</h4>
-                    <div id="rod-shop" class="shop-items">
-                    </div>
+                <div id="shop-items" class="shop-items">
+                    <!-- Les items seront ajoutés dynamiquement ici -->
                 </div>
             </div>
         </div>
     </div>
     
-    <script src="js/app.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/ui.js"></script>
+    <script type="module" src="src/js/main.js"></script>
 </body>
 </html>
